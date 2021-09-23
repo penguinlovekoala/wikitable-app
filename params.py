@@ -1,2 +1,3 @@
 class Parameters:
-    koala = "koala"
+    save_to_file = False
+    sample_size = 100
