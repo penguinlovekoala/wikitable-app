@@ -273,7 +273,7 @@ class Sampler:
 
     @staticmethod
     def preprocess_text_for_parlai(text):
-        to_remove = ['text:', 'labels:', '__context_', '__cand_'
+        to_remove = ['text:', 'labels:', '__context_', '__tag_'
                      'label_candidates:', 'episode_done:', ':']
         for item in to_remove:
             text = text.replace(item, '')
@@ -286,19 +286,36 @@ class Sampler:
         text = basket["text"]
         tag_value_list = basket["tag_value_list"]
         tags = [x['tag'] for x in tag_value_list]
-        for cand in fixed_candidates:
-            cand = self.preprocess_text_for_parlai(cand)
+        # cand = self.preprocess_text_for_parlai(cand)
+
+        diff = set(set(fixed_candidates).difference(tags))
+
+        negative_tags = []
+        for tag in tags:
+            elem = diff.pop()
+            negative_tags.append(elem)
+
+        for tag in tags:
             text = self.preprocess_text_for_parlai(text)
-            if cand in tags:
-                label_ = 1
-            else:
-                label_ = 0
-            line = [f'text:__cand_ {cand} __context_ {text}',
-                    f'labels:{label_}',
+            tag = self.preprocess_text_for_parlai(tag)
+            line = [f'text:__tag_ {tag} __context_ {text}',
+                    f'labels:1',
                     'label_candidates:1|0',
                     'episode_done:True']
             line = "\t".join(line)
             lines.append(line)
+
+        for neg_tag in negative_tags:
+            text = self.preprocess_text_for_parlai(text)
+            neg_tag = self.preprocess_text_for_parlai(neg_tag)
+
+            line = [f'text:__tag_ {neg_tag} __context_ {text}',
+                    f'labels:0',
+                    'label_candidates:1|0',
+                    'episode_done:True']
+            line = "\t".join(line)
+            lines.append(line)
+
         return lines
 
     def create_value_generation_lines_parlai(self, basket):
