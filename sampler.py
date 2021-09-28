@@ -285,7 +285,7 @@ class Sampler:
         lines = []
         text = basket["text"]
         tag_value_list = basket["tag_value_list"]
-        tags = [x['tag'] for x in tag_value_list]
+        tags = [x['tag'] for x in tag_value_list if x['tag'] in fixed_candidates]
         # cand = self.preprocess_text_for_parlai(cand)
 
         diff = set(set(fixed_candidates).difference(tags))
