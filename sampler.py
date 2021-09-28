@@ -226,31 +226,86 @@ class Sampler:
 
         doc_name2data = self.load_data()
         if (self.data_type == "train") and (parlai_data_type == '500-tag-prediction'):
-            self.create_fixed_candidates_for_tag_prediction(doc_name2data)
+            fixed_candidates =\
+                    self.create_fixed_candidates_for_tag_prediction(doc_name2data)
         else:
             pass
 
         parlai_format_text = ""
-
+        parlai_lines = []
         for doc_name, basket_list in doc_name2data.items():
             for basket in basket_list:
-                text = basket["text"]
-                tags = [x['tag'] for x in basket['tag_value_list']]
-                values = [x['value'] for x in basket['tag_value_list']]
+                if parlai_data_type == '500-tag-prediction':
+                    parlai_lines += self.create_500_tag_prediction_lines_parlai(
+                            self, basket, fixed_candidates
+                    )
+                elif parlai_data_type == 'value-generation':
+                    parlai_lines += self.create_value_generation_lines_parlai(
+                            self, basket
+                    )
+                elif parlai_data_type == 'value-offset-prediction':
+                    parlai_lines \
+                            += self.create_value_offset_prediction_lines_parlai(
+                                    self, basket
+                    )
+                            
+                else:
+                    raise RuntimeError
 
-                
+        save_dir = f"{parlai_data_type}_{self.data_type}.txt" 
+        saver = TEXTSaver("\n".join(parlai_lines), save_dir)
+        saver()
+
+        print("-"*30)
+        print(f"[File Saved] at {save_dir}")
+        print("-"*30)
+         
+        return
+
+    def create_500_tag_prediction_lines_parlai(self, basket, fixed_candidates):
+        lines = []
+
+        text = basket["text"]
+        tag_value_list = basket["tag_value_list"]
+        tags = [x['tag'] for x in tag_value_list]
+        for cand in candidates:
+            if cand in tags:
+                line = [f'context:__cand_ {cand} {text}', f'labels:1']
+            else:
+                pass
 
         
         pass
 
+    def create_value_generation_lines_parlai(self, basket):
+        pass
+
+    def create_value_offset_prediction_lines_parlai(self, basket):
+        pass
+
     def create_fixed_candidates_for_tag_prediction(self, doc_name2data):
-        
+        """
+        Args:
+            doc_name2data: the dict ... (ref: generate_parlai_data)
+
+        Returns:
+            tag_list: a list of str, which is the list of tags
+
+        This method also save the fixed candidates as a file at 'save_dir'
+        """
+        import os
         tag_count_dict = dict()
+        save_dir = "fixed_candidates_for_tag_prediction.txt"
+        if os.path.isfile(save_dir):
+            loader_ = TEXTLoader(save_dir)
+            tag_list = loader_().split("\n")
+            return [x for x in tag_list if x]
+        else:
+            pass
 
         for doc_name, basket_list in doc_name2data.items():
             for basket in basket_list:
                 tags = [x['tag'] for x in basket['tag_value_list']]
-
                 for tag in tags:
                     if tag in tag_count_dict:
                         tag_count_dict[tag] += 1
@@ -261,16 +316,14 @@ class Sampler:
         tag_list = sorted(tag_list, key = lambda x: tag_count_dict[x], reverse=True)[:500]
 
         tag_list_text = ""
-
         for tag in tag_list:
-            tag_list_text += "\t".join([tag, str(tag_count_dict[tag])])
+            tag_list_text += tag 
             tag_list_text += "\n"
 
-        save_dir = "fixed_candidates_for_tag_prediction.txt"
         saver = TEXTSaver(tag_list_text, save_dir)
         saver()
         print(f"[FILE SAVED] at {save_dir}"
-        pass
+        return tag_list 
 
 class WikiSampler(Sampler):
     def __init__(self):
