@@ -294,6 +294,8 @@ class Sampler:
 
     def create_generation_lines_parlai(self, basket):
         text = basket["text"]
+        text = text.split(" ")[:1023]
+        text = " ".join(text)
         tag_value_list = basket["tag_value_list"]
         label = []
         for tag_value_dict in tag_value_list:
