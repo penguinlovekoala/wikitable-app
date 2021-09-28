@@ -209,7 +209,7 @@ class Sampler:
         }
         return to_return
 
-    def generate_parlai_data(self, parlai_data_type):
+    def generate_parlai_data(self):
         """
         loaded data by the self.load_data() returns 
             doc_name2data: dict where key is the doc_name and
@@ -219,10 +219,7 @@ class Sampler:
                            'doc_name', 'section_name',
                            'tag_value_list', and 'text'
         Args:
-            parlai_data_type: a str that can be one of 
-            ['500-tag-prediction',
-             'value-generation',
-             'value-offset-prediction']
+            None
         
         Returns:
            a str, which is the parlai-format line, that contains
@@ -231,37 +228,14 @@ class Sampler:
 
         doc_name2data = self.load_data()
 
-        if self.data_type == "train":
-            fixed_candidates \
-                = self.create_fixed_candidates_for_tag_prediction(
-                doc_name2data, create_new_file=True
-            )
-        else:
-            fixed_candidates \
-                = self.create_fixed_candidates_for_tag_prediction(
-                doc_name2data, create_new_file=False
-            )
-
-        parlai_format_text = ""
         parlai_lines = []
         for doc_name, basket_list in doc_name2data.items():
             for basket in basket_list:
-                if parlai_data_type == '500-tag-prediction':
-                    parlai_lines += self.create_500_tag_prediction_lines_parlai(basket, fixed_candidates)
-                elif parlai_data_type == 'value-generation':
-                    parlai_lines += self.create_value_generation_lines_parlai(
-                            self, basket
-                    )
-                elif parlai_data_type == 'value-offset-prediction':
-                    parlai_lines \
-                            += self.create_value_offset_prediction_lines_parlai(
-                                    self, basket
-                    )
-                            
-                else:
-                    raise RuntimeError
+                parlai_lines.append(
+                    self.create_generation_lines_parlai(basket)
+                )
 
-        save_dir = f"{parlai_data_type}_{self.data_type}.txt" 
+        save_dir = f"{self.data_type}.txt"
         saver = TEXTSaver("\n".join(parlai_lines), save_dir)
         saver()
 
@@ -318,11 +292,21 @@ class Sampler:
 
         return lines
 
-    def create_value_generation_lines_parlai(self, basket):
-        pass
+    def create_generation_lines_parlai(self, basket):
+        text = basket["text"]
+        tag_value_list = basket["tag_value_list"]
+        label = []
+        for tag_value_dict in tag_value_list:
+            label.append(
+                f"__{tag_value_dict['tag']}_ {tag_value_dict['value']}"
+            )
+        label = " ".join(label)
 
-    def create_value_offset_prediction_lines_parlai(self, basket):
-        pass
+        line = [f'text:{text}',
+                f'labels:{label}',
+                'episode_done:True']
+        line = "\t".join(line)
+        return line
 
     def create_fixed_candidates_for_tag_prediction(self,
                                                    doc_name2data,
@@ -451,7 +435,7 @@ def parlai_data_create():
 if __name__ == "__main__":
     for data_type in ['train', 'dev', 'test']:
         sampler = Sampler(data_type)
-        sampler.generate_parlai_data('500-tag-prediction')
+        sampler.generate_parlai_data()
 
         """
         ['500-tag-prediction',
