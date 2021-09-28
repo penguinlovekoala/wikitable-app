@@ -1,0 +1,235 @@
+DATE
+ORG
+NORP
+LOC
+human
+city of the United States
+GPE
+PERSON
+business
+MISC
+ethnic group
+county of Alabama
+EVENT
+WORK_OF_ART
+disease
+taxon
+big city
+List
+MONEY
+state of the United States
+FAC
+county seat
+language family
+town of the United States
+United States National Forest
+PER
+ethnic community
+Jewish denomination
+public educational institution of the United States
+Autism
+organization
+LAW
+Regions of Alabama
+Christian denomination
+religion
+automobile model
+chemical compound
+problem solving
+statistic
+LANGUAGE
+neurodevelopmental disorders
+advocacy group
+world day
+civil rights movement
+abjad
+natural script
+writing system
+United States census region
+administrative territorial entity
+modern language
+census-designated place
+History of Alabama
+Act of Congress in the United States
+Native American history
+PRODUCT
+military occupation
+racism
+historical country
+social class
+Alabama state park
+geographic region
+Lockheed Martin
+unincorporated community
+alloy steel
+industry
+film
+financial institution
+medical school
+medical term
+public health intervention
+medical diagnosis
+written work
+Swiss society
+Latin language
+behavior
+Child abuse
+profession
+reflexive relation
+hospital
+superseded scientific theory
+demographic profile
+branch of psychology
+Graphic design
+first-order metaclass
+rare disease
+Sociology of health and illness
+discrimination
+literary work
+health profession
+medical classification
+kinship
+committee
+holiday
+Autism rights movement
+medication
+Human genetics
+group action
+human organ
+social group
+mental disorder
+Fringe theory
+sound
+former administrative territorial entity
+glottal consonant
+phonetic writing system
+ideogram
+vocal sound
+Thought
+ancient language
+historical region
+undeciphered writing system
+Latin-script letter
+English language
+World Wars
+occupation
+property
+Birmingham-Hoover metropolitan area
+United States repealed legislation
+conversion of scripts
+watercourse
+ACT River Basin
+isolated human group
+Illinois state park
+population group
+archaeological find
+Midwestern United States
+Christianization
+state with limited recognition
+political party
+political scandal
+boundary delimitation
+territorial entity
+world war
+battle
+archaeological site
+Spanish Florida
+traditional economy
+ghost town
+History of United States expansionism
+aspect of history
+African-American history of Alabama
+Reconstruction Era
+paramilitary
+political organisation
+secession
+demonstration
+impact crater
+protected area
+Lookout Mountain
+botanical garden
+National Battlefield
+Landforms of Franklin County, Tennessee
+non-geologically related mountain range
+Mississippi River watershed
+show cave
+natural landscape
+National Park System unit
+African-American museum
+university
+bay
+plateau
+physiographic province
+species
+Alabama geography stubs
+concept
+group of organisms known by one particular common name
+biology
+Fisheries
+taxonomic rank
+point
+American culture
+Alabama stubs
+community center
+synagogue
+liberal religion
+Forced migration
+monotheistic religion
+church building
+religious text
+Christian movement
+Christian Church
+sexual abuse
+national public health institute
+legislative act
+Alabama statutes
+Southern United States
+Cotton production
+Maize production
+solid fuel
+forest product
+painting
+command
+mode of transport
+computer data storage
+aircraft family
+space agency
+research center
+online newspaper
+Jam band festivals
+Works based on Electronic Arts video games
+Cultural institutions in Mobile, Alabama
+hotel
+American baseball films
+sports venue
+amusement park
+reservoir
+Political films based on actual events
+credit institution
+legislative seat
+election act
+constituency
+American Civil War political groups
+Failed requests for military history A-Class review
+United States history stubs
+social movement
+Government of Alabama
+Electoral systems
+United States presidential elections terminology
+Electoral restrictions
+election
+legislature
+upper house
+School punishments
+school discipline
+branch of science
+Historically black colleges and universities
+land-grant university
+dental school
+public university
+magazine
+private not-for-profit educational institution
+South Alabama Jaguars sports venues
+Sports attendance
+university and college sports club
+mascot character

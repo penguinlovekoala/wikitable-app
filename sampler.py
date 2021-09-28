@@ -23,8 +23,8 @@ class Sampler:
         self.f_data = self.data_dir + self.f_tail
         self.f_save = self.save_dir + self.f_tail
 
-        if Parameters.set_num_basket_limit:
-            self.set_num_basket_limit = True
+        self.set_num_basket_limit = Parameters.set_num_basket_limit
+        if self.set_num_basket_limit:
             self.num_basket_limit = Parameters.num_basket_limit
         else:
             pass
@@ -67,6 +67,7 @@ class Sampler:
             else:
                 doc_name2data[key_] = [converted]
 
+        print("data_save:", self.data_type, "num_line:", idx)
         if Parameters.save_to_file:
             saver = JSONSaver(doc_name2data, self.f_save)
             saver()
@@ -108,8 +109,8 @@ class Sampler:
         tag_list = list(tag_dict.keys())
         value_list = list(value_dict.keys())
 
-        tag_list = sorted(tag_list, key = lambda x: tag_dict[x], reverse=True)
-        value_list = sorted(value_list, key = lambda x: value_dict[x], reverse=True)
+        tag_list = sorted(tag_list, key=lambda x: tag_dict[x], reverse=True)
+        value_list = sorted(value_list, key=lambda x: value_dict[x], reverse=True)
         
         tag_save_text = ""
         value_save_text = ""
@@ -143,7 +144,8 @@ class Sampler:
     def intersection_between_text_and_tag(self):
         doc_name2data = self.load_data()
 
-        count_tags, count_values, count_intersection_tag, count_intersection_value = 0, 0, 0, 0
+        count_tags, count_values, count_intersection_tag, count_intersection_value \
+            = 0, 0, 0, 0
         for doc_name, basket_list in doc_name2data.items():
             for basket in basket_list:
                 text = basket["text"]
@@ -179,8 +181,6 @@ class Sampler:
                 print(text)
                 sys.exit()
 
-                
-
         print("-"*30)
         print(self.f_tail)
         print("-"*30)
@@ -212,12 +212,17 @@ class Sampler:
     def generate_parlai_data(self, parlai_data_type):
         """
         loaded data by the self.load_data() returns 
-            doc_name2data: dict where key is the doc_name and the value is the list of
-                           basket where the basket is the dict that has keys of 'doc_name',
-                           'section_name', 'tag_value_list', and 'text'
+            doc_name2data: dict where key is the doc_name and
+                           the value is the list of
+                           basket where the basket is
+                           the dict that has keys of
+                           'doc_name', 'section_name',
+                           'tag_value_list', and 'text'
         Args:
             parlai_data_type: a str that can be one of 
-            ['500-tag-prediction', 'value-generation', 'value-offset-prediction']
+            ['500-tag-prediction',
+             'value-generation',
+             'value-offset-prediction']
         
         Returns:
            a str, which is the parlai-format line, that contains
@@ -225,20 +230,24 @@ class Sampler:
         """
 
         doc_name2data = self.load_data()
-        if (self.data_type == "train") and (parlai_data_type == '500-tag-prediction'):
-            fixed_candidates =\
-                    self.create_fixed_candidates_for_tag_prediction(doc_name2data)
+
+        if self.data_type == "train":
+            fixed_candidates \
+                = self.create_fixed_candidates_for_tag_prediction(
+                doc_name2data, create_new_file=True
+            )
         else:
-            pass
+            fixed_candidates \
+                = self.create_fixed_candidates_for_tag_prediction(
+                doc_name2data, create_new_file=False
+            )
 
         parlai_format_text = ""
         parlai_lines = []
         for doc_name, basket_list in doc_name2data.items():
             for basket in basket_list:
                 if parlai_data_type == '500-tag-prediction':
-                    parlai_lines += self.create_500_tag_prediction_lines_parlai(
-                            self, basket, fixed_candidates
-                    )
+                    parlai_lines += self.create_500_tag_prediction_lines_parlai(basket, fixed_candidates)
                 elif parlai_data_type == 'value-generation':
                     parlai_lines += self.create_value_generation_lines_parlai(
                             self, basket
@@ -262,20 +271,35 @@ class Sampler:
          
         return
 
-    def create_500_tag_prediction_lines_parlai(self, basket, fixed_candidates):
-        lines = []
+    @staticmethod
+    def preprocess_text_for_parlai(text):
+        to_remove = ['text:', 'labels:', '__context_', '__cand_'
+                     'label_candidates:', 'episode_done:', ':']
+        for item in to_remove:
+            text = text.replace(item, '')
+        return text
 
+    def create_500_tag_prediction_lines_parlai(
+            self, basket, fixed_candidates
+    ):
+        lines = []
         text = basket["text"]
         tag_value_list = basket["tag_value_list"]
         tags = [x['tag'] for x in tag_value_list]
-        for cand in candidates:
+        for cand in fixed_candidates:
+            cand = self.preprocess_text_for_parlai(cand)
+            text = self.preprocess_text_for_parlai(text)
             if cand in tags:
-                line = [f'context:__cand_ {cand} {text}', f'labels:1']
+                label_ = 1
             else:
-                pass
-
-        
-        pass
+                label_ = 0
+            line = [f'text:__cand_ {cand} __context_ {text}',
+                    f'labels:{label_}',
+                    'label_candidates:1|0',
+                    'episode_done:True']
+            line = "\t".join(line)
+            lines.append(line)
+        return lines
 
     def create_value_generation_lines_parlai(self, basket):
         pass
@@ -283,7 +307,9 @@ class Sampler:
     def create_value_offset_prediction_lines_parlai(self, basket):
         pass
 
-    def create_fixed_candidates_for_tag_prediction(self, doc_name2data):
+    def create_fixed_candidates_for_tag_prediction(self,
+                                                   doc_name2data,
+                                                   create_new_file):
         """
         Args:
             doc_name2data: the dict ... (ref: generate_parlai_data)
@@ -296,12 +322,12 @@ class Sampler:
         import os
         tag_count_dict = dict()
         save_dir = "fixed_candidates_for_tag_prediction.txt"
-        if os.path.isfile(save_dir):
+        if (create_new_file) and (not os.path.isfile(save_dir)):
+            pass
+        else:
             loader_ = TEXTLoader(save_dir)
             tag_list = loader_().split("\n")
             return [x for x in tag_list if x]
-        else:
-            pass
 
         for doc_name, basket_list in doc_name2data.items():
             for basket in basket_list:
@@ -313,7 +339,7 @@ class Sampler:
                         tag_count_dict[tag] = 1
 
         tag_list = list(tag_count_dict.keys())
-        tag_list = sorted(tag_list, key = lambda x: tag_count_dict[x], reverse=True)[:500]
+        tag_list = sorted(tag_list, key=lambda x: tag_count_dict[x], reverse=True)[:500]
 
         tag_list_text = ""
         for tag in tag_list:
@@ -322,8 +348,8 @@ class Sampler:
 
         saver = TEXTSaver(tag_list_text, save_dir)
         saver()
-        print(f"[FILE SAVED] at {save_dir}"
-        return tag_list 
+        print(f"[FILE SAVED] at {save_dir}")
+        return tag_list
 
 class WikiSampler(Sampler):
     def __init__(self):
@@ -408,5 +434,11 @@ def parlai_data_create():
 if __name__ == "__main__":
     for data_type in ['train', 'dev', 'test']:
         sampler = Sampler(data_type)
-        sampler.intersection_between_text_and_tag()
+        sampler.generate_parlai_data('500-tag-prediction')
+
+        """
+        ['500-tag-prediction',
+             'value-generation',
+             'value-offset-prediction']
+        """
 
