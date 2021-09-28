@@ -15,16 +15,33 @@ class Sampler:
         Returns:
             None
         """
+
+        self.data_type = data_type
         self.data_dir = "../data/final_data/"
         self.save_dir = "../data/converted/"
         self.f_tail = f"{data_type}.json"
         self.f_data = self.data_dir + self.f_tail
         self.f_save = self.save_dir + self.f_tail
 
+        if Parameters.set_num_basket_limit:
+            self.set_num_basket_limit = True
+            self.num_basket_limit = Parameters.num_basket_limit
+        else:
+            pass
+
     def __call__(self):
         return self.load_data()
 
     def load_data(self):
+        """
+        Args: None
+
+        Returns:
+            doc_name2data: dict where key is the doc_name and the value is the list of
+                           basket where the basket is the dict that has keys of 'doc_name',
+                           'section_name', 'tag_value_list', and 'text'
+                           
+        """
         loader = TEXTLoader(self.f_data)
         lines = loader().split("\n")
         doc_name2data = dict()
@@ -34,6 +51,15 @@ class Sampler:
                 pass
             else:
                 continue
+
+            if self.set_num_basket_limit:
+                if idx > self.num_basket_limit:
+                    break
+                else:
+                    pass
+            else:
+                pass
+
             converted = self.text_line_to_readable_dict(line)
             key_ = converted['doc_name']
             if key_ in doc_name2data:
@@ -115,7 +141,52 @@ class Sampler:
         return
 
     def intersection_between_text_and_tag(self):
-        # text = 
+        doc_name2data = self.load_data()
+
+        count_tags, count_values, count_intersection_tag, count_intersection_value = 0, 0, 0, 0
+        for doc_name, basket_list in doc_name2data.items():
+            for basket in basket_list:
+                text = basket["text"]
+                tags = [x['tag'] for x in basket['tag_value_list']]
+                values = [x['value'] for x in basket['tag_value_list']]
+
+                num_tags = len(tags)
+                num_values = len(values)
+
+                num_tag_intersection = len([x for x in tags if x in text])
+                num_value_intersection = len([x for x in values if x in text])
+                
+                count_tags += num_tags
+                count_intersection_tag += num_tag_intersection
+
+                count_values += num_values
+                count_intersection_value += num_value_intersection
+
+                for tag_ in tags:
+                    if tag_ in text:
+                        print("[TAGS]", tag_)
+                    else:
+                        pass
+
+                print("-"*30)
+
+                for value_ in values:
+                    if value_ in values:
+                        print("[VALUES]", value_)
+                    else:
+                        pass
+                print("-"*30)
+                print(text)
+                sys.exit()
+
+                
+
+        print("-"*30)
+        print(self.f_tail)
+        print("-"*30)
+        print("[count_tags, count_values, count_intersection_tag, count_intersection_value]")
+        print(count_tags, count_values, count_intersection_tag, count_intersection_value)
+        print("-"*30)
 
 
         return
@@ -138,19 +209,68 @@ class Sampler:
         }
         return to_return
 
-    def generate_parlai_data(self, basket):
+    def generate_parlai_data(self, parlai_data_type):
         """
+        loaded data by the self.load_data() returns 
+            doc_name2data: dict where key is the doc_name and the value is the list of
+                           basket where the basket is the dict that has keys of 'doc_name',
+                           'section_name', 'tag_value_list', and 'text'
         Args:
-            basket: dict, that has keys of
-            'doc_name', 'section_name', 'tag_value_list', and 'text'
+            parlai_data_type: a str that can be one of 
+            ['500-tag-prediction', 'value-generation', 'value-offset-prediction']
         
         Returns:
            a str, which is the parlai-format line, that contains
            'text:', 'labels:', 'label_candidates:', and 'episode_done:True'
         """
-        # START FROM HERE
+
+        doc_name2data = self.load_data()
+        if (self.data_type == "train") and (parlai_data_type == '500-tag-prediction'):
+            self.create_fixed_candidates_for_tag_prediction(doc_name2data)
+        else:
+            pass
+
+        parlai_format_text = ""
+
+        for doc_name, basket_list in doc_name2data.items():
+            for basket in basket_list:
+                text = basket["text"]
+                tags = [x['tag'] for x in basket['tag_value_list']]
+                values = [x['value'] for x in basket['tag_value_list']]
+
+                
+
+        
         pass
 
+    def create_fixed_candidates_for_tag_prediction(self, doc_name2data):
+        
+        tag_count_dict = dict()
+
+        for doc_name, basket_list in doc_name2data.items():
+            for basket in basket_list:
+                tags = [x['tag'] for x in basket['tag_value_list']]
+
+                for tag in tags:
+                    if tag in tag_count_dict:
+                        tag_count_dict[tag] += 1
+                    else:
+                        tag_count_dict[tag] = 1
+
+        tag_list = list(tag_count_dict.keys())
+        tag_list = sorted(tag_list, key = lambda x: tag_count_dict[x], reverse=True)[:500]
+
+        tag_list_text = ""
+
+        for tag in tag_list:
+            tag_list_text += "\t".join([tag, str(tag_count_dict[tag])])
+            tag_list_text += "\n"
+
+        save_dir = "fixed_candidates_for_tag_prediction.txt"
+        saver = TEXTSaver(tag_list_text, save_dir)
+        saver()
+        print(f"[FILE SAVED] at {save_dir}"
+        pass
 
 class WikiSampler(Sampler):
     def __init__(self):
@@ -235,5 +355,5 @@ def parlai_data_create():
 if __name__ == "__main__":
     for data_type in ['train', 'dev', 'test']:
         sampler = Sampler(data_type)
-        sampler.frequency_measure_tag_and_values()
+        sampler.intersection_between_text_and_tag()
 
